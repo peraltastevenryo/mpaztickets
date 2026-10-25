@@ -13,11 +13,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TicketsScreen(
     viewModel: TicketViewModel,
-    onIrACrearTicket: () -> Unit // Parámetro para navegar al formulario
+    onIrACrearTicket: () -> Unit
 ) {
     val listaTickets by viewModel.todosLosTickets.collectAsState(initial = emptyList())
 
-    // Usamos Scaffold para poder incorporar el botón flotante (FAB) abajo a la derecha
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onIrACrearTicket) {
