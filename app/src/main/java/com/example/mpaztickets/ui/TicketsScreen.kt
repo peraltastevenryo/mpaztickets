@@ -6,8 +6,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -17,28 +19,54 @@ fun TicketsScreen(
     rolUsuario: String,
     nombreUsuario: String,
     onIrACrearTicket: () -> Unit,
-    onIrADetalle: (Int) -> Unit
+    onIrADetalle: (Int) -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
     var usarOrdenPrioridad by remember { mutableStateOf(false) }
+    var mostrarDialogoLogout by remember { mutableStateOf(false) }
 
     val rolLimpio = rolUsuario.lowercase().trim()
+    val esAdmin = rolLimpio == "administrador" || rolLimpio == "admin"
+    val esResponsable = rolLimpio == "responsable"
 
-    val ticketsFlow = when (rolLimpio) {
-        "administrador", "admin" -> {
+    val ticketsFlow = when {
+        esAdmin -> {
             if (usarOrdenPrioridad) viewModel.obtenerTicketsPorPrioridad()
             else viewModel.todosLosTickets
         }
-        "responsable" -> viewModel.obtenerTicketsPorResponsable(nombreUsuario)
+        esResponsable -> {
+            if (usarOrdenPrioridad) viewModel.obtenerTicketsPorResponsableYPrioridad(nombreUsuario)
+            else viewModel.obtenerTicketsPorResponsable(nombreUsuario)
+        }
         else -> viewModel.obtenerTicketsPorSolicitante(nombreUsuario)
     }
 
     val listaTickets by ticketsFlow.collectAsState(initial = emptyList())
 
-    val esAdmin = rolLimpio == "administrador" || rolLimpio == "admin"
+    if (mostrarDialogoLogout) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoLogout = false },
+            title = { Text("Cerrar Sesion") },
+            text = { Text("¿Estas seguro de que deseas cerrar sesion?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    mostrarDialogoLogout = false
+                    onCerrarSesion()
+                }) {
+                    Text("Si, salir")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoLogout = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         floatingActionButton = {
-            if (rolLimpio != "responsable") {
+            if (!esResponsable) {
                 FloatingActionButton(onClick = onIrACrearTicket) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -54,16 +82,35 @@ fun TicketsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            val tituloPantalla = when (rolLimpio) {
-                "administrador", "admin" -> "Panel de Administración"
-                "responsable" -> "Mis Casos Asignados"
-                else -> "Problemas registrados"
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val tituloPantalla = when {
+                    esAdmin -> "Panel de Administración"
+                    esResponsable -> "Mis Casos Asignados"
+                    else -> "Problemas registrados"
+                }
+
+                Text(
+                    text = tituloPantalla,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(onClick = { mostrarDialogoLogout = true }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = "Cerrar sesión",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
-            Text(text = tituloPantalla, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(12.dp))
 
-            if (esAdmin) {
+            if (esAdmin || esResponsable) {
                 Button(
                     onClick = { usarOrdenPrioridad = !usarOrdenPrioridad },
                     modifier = Modifier.fillMaxWidth()
@@ -78,7 +125,7 @@ fun TicketsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(text = "No hay tickets disponibles.")
                 }
@@ -104,7 +151,7 @@ fun TicketsScreen(
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = ticket.titulo,
@@ -112,28 +159,26 @@ fun TicketsScreen(
                                         modifier = Modifier.weight(1f)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
+
                                     Text(
-                                        text = "Prioridad: ${ticket.prioridad}",
+                                        text = "Estado: ${ticket.estado}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = ticket.descripcion,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Categoria: ${ticket.categoria}",
+                                        text = "Ubicacion: ${ticket.ubicacion}",
                                         style = MaterialTheme.typography.bodySmall
                                     )
+
                                     Text(
-                                        text = "Ubicacion: ${ticket.ubicacion}",
+                                        text = "Prioridad: ${ticket.prioridad}",
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }

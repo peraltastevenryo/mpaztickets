@@ -24,6 +24,16 @@ class TicketViewModel(private val repository: TicketRepository) : ViewModel() {
         }
     }
 
+    fun asignarResponsableATicket(ticket: Ticket, nuevoResponsable: String) {
+        viewModelScope.launch {
+            val ticketActualizado = ticket.copy(
+                responsable = nuevoResponsable,
+                estado = "Asignado"
+            )
+            repository.actualizarTicket(ticketActualizado)
+        }
+    }
+
     suspend fun obtenerTicketPorId(id: Int): Ticket? {
         return repository.obtenerTicketPorId(id)
     }
@@ -38,6 +48,10 @@ class TicketViewModel(private val repository: TicketRepository) : ViewModel() {
 
     fun obtenerTicketsPorPrioridad(): Flow<List<Ticket>> {
         return repository.obtenerTicketsPorPrioridad()
+    }
+
+    fun obtenerTicketsPorResponsableYPrioridad(nombre: String): Flow<List<Ticket>> {
+        return repository.obtenerTicketsPorResponsableYPrioridad(nombre)
     }
 }
 

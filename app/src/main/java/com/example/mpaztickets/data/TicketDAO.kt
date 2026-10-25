@@ -29,4 +29,7 @@ interface TicketDAO {
     @Query("SELECT * FROM tickets WHERE id = :ticketId")
     suspend fun obtenerTicketPorId(ticketId: Int): Ticket?
 
+    @Query("SELECT * FROM tickets WHERE responsable = :nombreResponsable ORDER BY CASE prioridad WHEN 'Alta' THEN 1 WHEN 'Normal' THEN 2 WHEN 'Baja' THEN 3 ELSE 4 END")
+    fun obtenerTicketsPorResponsableYPrioridad(nombreResponsable: String): Flow<List<Ticket>>
+
 }

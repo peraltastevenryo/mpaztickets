@@ -17,6 +17,7 @@ import com.example.mpaztickets.data.Ticket
 @Composable
 fun DetalleTicketScreen(
     viewModel: TicketViewModel,
+    usuarioViewModel: UsuarioViewModel,
     ticketId: Int,
     rolUsuario: String,
     onVolverAtras: () -> Unit
@@ -25,15 +26,23 @@ fun DetalleTicketScreen(
     var estadoSeleccionado by remember { mutableStateOf("") }
     var expandedEstado by remember { mutableStateOf(false) }
 
+    var responsableSeleccionado by remember { mutableStateOf("") }
+    var expandedResponsable by remember { mutableStateOf(false) }
+
+    val listaResponsables by usuarioViewModel.listaResponsables.collectAsState(initial = emptyList())
+
     val rolLimpio = rolUsuario.lowercase().trim()
     val esResponsable = rolLimpio == "responsable"
-    val estadosPosibles = listOf("Pendiente", "En Proceso", "Resuelto")
+    val esAdmin = rolLimpio == "administrador" || rolLimpio == "admin"
+
+    val estadosPosibles = listOf("Pendiente", "Revisado", "Asignado", "En Proceso", "Solucionado", "Cerrado")
 
     LaunchedEffect(ticketId) {
         val encontrado = viewModel.obtenerTicketPorId(ticketId)
         ticket = encontrado
         if (encontrado != null) {
             estadoSeleccionado = encontrado.estado
+            responsableSeleccionado = encontrado.responsable ?: ""
         }
     }
 
@@ -81,10 +90,58 @@ fun DetalleTicketScreen(
                         Text(text = "Ubicacion: ${currentTicket.ubicacion}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Prioridad: ${currentTicket.prioridad}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Solicitante: ${currentTicket.solicitante}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "Responsable actual: ${currentTicket.responsable ?: "Sin asignar"}", style = MaterialTheme.typography.bodyMedium)
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Divider()
                         Spacer(modifier = Modifier.height(8.dp))
+
+                        if (esAdmin) {
+                            Text(text = "Asignar a Responsable:", style = MaterialTheme.typography.titleSmall)
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            ExposedDropdownMenuBox(
+                                expanded = expandedResponsable,
+                                onExpandedChange = { expandedResponsable = !expandedResponsable },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = if (responsableSeleccionado.isEmpty()) "Seleccionar responsable" else responsableSeleccionado,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Responsable") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedResponsable) },
+                                    modifier = Modifier
+                                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+                                        .fillMaxWidth()
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = expandedResponsable,
+                                    onDismissRequest = { expandedResponsable = false }
+                                ) {
+                                    if (listaResponsables.isEmpty()) {
+                                        DropdownMenuItem(
+                                            text = { Text("No hay usuarios responsables creados") },
+                                            onClick = { expandedResponsable = false }
+                                        )
+                                    } else {
+                                        listaResponsables.forEach { usuarioResp ->
+                                            DropdownMenuItem(
+                                                text = { Text(usuarioResp.nombre) },
+                                                onClick = {
+                                                    responsableSeleccionado = usuarioResp.nombre
+                                                    expandedResponsable = false
+                                                    viewModel.asignarResponsableATicket(currentTicket, usuarioResp.nombre)
+                                                    ticket = currentTicket.copy(responsable = usuarioResp.nombre, estado = "Asignado")
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
 
                         if (esResponsable) {
                             Text(text = "Actualizar Estado:", style = MaterialTheme.typography.titleSmall)
@@ -124,7 +181,7 @@ fun DetalleTicketScreen(
                                     }
                                 }
                             }
-                        } else {
+                        } else if (!esAdmin) {
                             Text(text = "Estado actual: ${currentTicket.estado}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.secondary)
                         }
 

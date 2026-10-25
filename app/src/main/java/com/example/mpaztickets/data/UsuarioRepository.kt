@@ -1,5 +1,7 @@
 package com.example.mpaztickets.data
 
+import kotlinx.coroutines.flow.Flow
+
 class UsuarioRepository(private val usuarioDao: UsuarioDAO) {
 
     suspend fun insertarUsuario(usuario: Usuario) {
@@ -17,4 +19,9 @@ class UsuarioRepository(private val usuarioDao: UsuarioDAO) {
     suspend fun actualizarUsuario(usuario: Usuario) {
         usuarioDao.actualizarUsuario(usuario)
     }
+
+    fun obtenerResponsables(): Flow<List<Usuario>> {
+        return usuarioDao.obtenerResponsables()
+    }
+
 }

@@ -55,6 +55,11 @@ fun Navegacion(
                 },
                 onIrADetalle = { ticketId ->
                     navController.navigate("detalle_ticket/$ticketId/$rolUsuario")
+                },
+                onCerrarSesion = {
+                    navController.navigate("login") {
+                        popUpTo("feed_tickets/{rolUsuario}/{nombreUsuario}") { inclusive = true }
+                    }
                 }
             )
         }
@@ -80,6 +85,7 @@ fun Navegacion(
 
             DetalleTicketScreen(
                 viewModel = ticketViewModel,
+                usuarioViewModel = usuarioViewModel,
                 ticketId = ticketId,
                 rolUsuario = rolUsuario,
                 onVolverAtras = {

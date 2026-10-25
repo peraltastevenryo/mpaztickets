@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDAO {
@@ -19,4 +20,8 @@ interface UsuarioDAO {
 
     @Update
     suspend fun actualizarUsuario(usuario: Usuario)
+
+    @Query("SELECT * FROM usuarios WHERE rol = 'Responsable' OR rol = 'responsable'")
+    fun obtenerResponsables(): Flow<List<Usuario>>
+
 }
