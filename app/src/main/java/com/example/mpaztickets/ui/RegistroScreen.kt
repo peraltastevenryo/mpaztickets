@@ -25,7 +25,6 @@ fun RegistroScreen(
     var contrasena by remember { mutableStateOf("") }
     var rol by remember { mutableStateOf("") }
 
-    // Variables para controlar el menú desplegable (Dropdown)
     var expanded by remember { mutableStateOf(false) }
     val rolesDisponibles = listOf("Usuario", "Responsable", "Admin")
 
@@ -87,7 +86,7 @@ fun RegistroScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Menú desplegable para seleccionar el rol de forma fija
+            
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded },
@@ -96,7 +95,7 @@ fun RegistroScreen(
                 OutlinedTextField(
                     value = rol,
                     onValueChange = {},
-                    readOnly = true, // Impide que escriban texto libre
+                    readOnly = true,
                     label = { Text("Selecciona un Rol") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
