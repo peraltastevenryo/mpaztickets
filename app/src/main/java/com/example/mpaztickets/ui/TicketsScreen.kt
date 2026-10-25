@@ -1,5 +1,6 @@
 package com.example.mpaztickets.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,17 +14,37 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TicketsScreen(
     viewModel: TicketViewModel,
-    onIrACrearTicket: () -> Unit
+    rolUsuario: String,
+    nombreUsuario: String,
+    onIrACrearTicket: () -> Unit,
+    onIrADetalle: (Int) -> Unit
 ) {
-    val listaTickets by viewModel.todosLosTickets.collectAsState(initial = emptyList())
+    var usarOrdenPrioridad by remember { mutableStateOf(false) }
+
+    val rolLimpio = rolUsuario.lowercase().trim()
+
+    val ticketsFlow = when (rolLimpio) {
+        "administrador", "admin" -> {
+            if (usarOrdenPrioridad) viewModel.obtenerTicketsPorPrioridad()
+            else viewModel.todosLosTickets
+        }
+        "responsable" -> viewModel.obtenerTicketsPorResponsable(nombreUsuario)
+        else -> viewModel.obtenerTicketsPorSolicitante(nombreUsuario)
+    }
+
+    val listaTickets by ticketsFlow.collectAsState(initial = emptyList())
+
+    val esAdmin = rolLimpio == "administrador" || rolLimpio == "admin"
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = onIrACrearTicket) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Crear nuevo ticket"
-                )
+            if (rolLimpio != "responsable") {
+                FloatingActionButton(onClick = onIrACrearTicket) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Crear nuevo ticket"
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -33,8 +54,24 @@ fun TicketsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Text(text = "Feed de Problemas", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(16.dp))
+            val tituloPantalla = when (rolLimpio) {
+                "administrador", "admin" -> "Panel de Administración"
+                "responsable" -> "Mis Casos Asignados"
+                else -> "Problemas registrados"
+            }
+
+            Text(text = tituloPantalla, style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (esAdmin) {
+                Button(
+                    onClick = { usarOrdenPrioridad = !usarOrdenPrioridad },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (usarOrdenPrioridad) "Mostrando por Prioridad (Cambiar)" else "Ordenar por Prioridad")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             if (listaTickets.isEmpty()) {
                 Box(
@@ -43,7 +80,7 @@ fun TicketsScreen(
                         .weight(1f),
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
-                    Text(text = "No hay tickets registrados todavía.")
+                    Text(text = "No hay tickets disponibles.")
                 }
             } else {
                 LazyColumn(
@@ -54,7 +91,9 @@ fun TicketsScreen(
                 ) {
                     items(listaTickets) { ticket ->
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onIrADetalle(ticket.id) },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
@@ -62,10 +101,23 @@ fun TicketsScreen(
                                     .fillMaxWidth()
                                     .padding(12.dp)
                             ) {
-                                Text(
-                                    text = ticket.titulo,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = ticket.titulo,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Prioridad: ${ticket.prioridad}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = ticket.descripcion,

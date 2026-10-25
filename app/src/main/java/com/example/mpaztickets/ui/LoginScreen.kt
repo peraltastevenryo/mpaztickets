@@ -13,13 +13,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-
     viewModel: UsuarioViewModel,
-
-    onLoginExitoso: () -> Unit,
-
+    onLoginExitoso: (String, String) -> Unit,
     onIrARegistro: () -> Unit
-
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
@@ -64,7 +60,10 @@ fun LoginScreen(
                     coroutineScope.launch {
                         val exito = viewModel.iniciarSesion(correo, contrasena)
                         if (exito) {
-                            onLoginExitoso()
+                            val usuario = viewModel.usuarioActual.value
+                            if (usuario != null) {
+                                onLoginExitoso(usuario.rol, usuario.nombre)
+                            }
                         } else {
                             Toast.makeText(context, "Datos incorrectos o no registrado", Toast.LENGTH_SHORT).show()
                         }

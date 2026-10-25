@@ -24,12 +24,20 @@ class TicketViewModel(private val repository: TicketRepository) : ViewModel() {
         }
     }
 
+    suspend fun obtenerTicketPorId(id: Int): Ticket? {
+        return repository.obtenerTicketPorId(id)
+    }
+
     fun obtenerTicketsPorSolicitante(nombre: String): Flow<List<Ticket>> {
         return repository.obtenerTicketsPorSolicitante(nombre)
     }
 
     fun obtenerTicketsPorResponsable(nombre: String): Flow<List<Ticket>> {
         return repository.obtenerTicketsPorResponsable(nombre)
+    }
+
+    fun obtenerTicketsPorPrioridad(): Flow<List<Ticket>> {
+        return repository.obtenerTicketsPorPrioridad()
     }
 }
 

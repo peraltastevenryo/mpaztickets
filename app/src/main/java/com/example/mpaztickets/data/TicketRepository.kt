@@ -14,11 +14,19 @@ class TicketRepository(private val ticketDao: TicketDAO) {
         ticketDao.actualizarTicket(ticket)
     }
 
+    suspend fun obtenerTicketPorId(id: Int): Ticket? {
+        return ticketDao.obtenerTicketPorId(id)
+    }
+
     fun obtenerTicketsPorSolicitante(nombre: String): Flow<List<Ticket>> {
         return ticketDao.obtenerTicketsPorSoli(nombre)
     }
 
     fun obtenerTicketsPorResponsable(nombre: String): Flow<List<Ticket>> {
         return ticketDao.obtenerTicketsPorRespo(nombre)
+    }
+
+    fun obtenerTicketsPorPrioridad(): Flow<List<Ticket>> {
+        return ticketDao.obtenerTicketsPorPrioridad()
     }
 }

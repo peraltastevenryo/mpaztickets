@@ -17,9 +17,8 @@ fun Navegacion(
         composable("login") {
             LoginScreen(
                 viewModel = usuarioViewModel,
-                onLoginExitoso = {
-                    
-                    navController.navigate("feed_tickets") {
+                onLoginExitoso = { rol, nombre ->
+                    navController.navigate("feed_tickets/$rol/$nombre") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -43,21 +42,46 @@ fun Navegacion(
             )
         }
 
-        composable("feed_tickets") {
+        composable("feed_tickets/{rolUsuario}/{nombreUsuario}") { backStackEntry ->
+            val rolUsuario = backStackEntry.arguments?.getString("rolUsuario") ?: "Usuario"
+            val nombreUsuario = backStackEntry.arguments?.getString("nombreUsuario") ?: ""
+
             TicketsScreen(
                 viewModel = ticketViewModel,
+                rolUsuario = rolUsuario,
+                nombreUsuario = nombreUsuario,
                 onIrACrearTicket = {
-                    navController.navigate("crear_ticket")
+                    navController.navigate("crear_ticket/$nombreUsuario")
+                },
+                onIrADetalle = { ticketId ->
+                    navController.navigate("detalle_ticket/$ticketId/$rolUsuario")
                 }
             )
         }
 
-        composable("crear_ticket") {
+        composable("crear_ticket/{nombreUsuario}") { backStackEntry ->
+            val nombreUsuario = backStackEntry.arguments?.getString("nombreUsuario") ?: ""
+
             CrearTicketScreen(
                 viewModel = ticketViewModel,
+                nombreUsuario = nombreUsuario,
                 onTicketGuardado = {
                     navController.popBackStack()
                 },
+                onVolverAtras = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("detalle_ticket/{ticketId}/{rolUsuario}") { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getString("ticketId")?.toIntOrNull() ?: 0
+            val rolUsuario = backStackEntry.arguments?.getString("rolUsuario") ?: "Usuario"
+
+            DetalleTicketScreen(
+                viewModel = ticketViewModel,
+                ticketId = ticketId,
+                rolUsuario = rolUsuario,
                 onVolverAtras = {
                     navController.popBackStack()
                 }

@@ -17,9 +17,11 @@ import androidx.core.content.FileProvider
 import com.example.mpaztickets.data.Ticket
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrearTicketScreen(
     viewModel: TicketViewModel,
+    nombreUsuario: String,
     onTicketGuardado: () -> Unit,
     onVolverAtras: () -> Unit
 ) {
@@ -27,9 +29,12 @@ fun CrearTicketScreen(
     var descripcion by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
+    var prioridadSeleccionada by remember { mutableStateOf("Normal") }
+    var expanded by remember { mutableStateOf(false) }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
+    val opcionesPrioridad = listOf("Baja", "Normal", "Alta")
 
     val photoFile = remember {
         File(context.cacheDir, "ticket_foto_${System.currentTimeMillis()}.jpg")
@@ -103,6 +108,36 @@ fun CrearTicketScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         )
 
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        ) {
+            OutlinedTextField(
+                value = prioridadSeleccionada,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Prioridad") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                opcionesPrioridad.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = { Text(opcion) },
+                        onClick = {
+                            prioridadSeleccionada = opcion
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -137,7 +172,8 @@ fun CrearTicketScreen(
                         descripcion = descripcion,
                         categoria = categoria,
                         ubicacion = ubicacion,
-                        solicitante = "Juan Perez",
+                        prioridad = prioridadSeleccionada,
+                        solicitante = nombreUsuario,
                         fotoProblema = imagenUri?.toString()
                     )
 
