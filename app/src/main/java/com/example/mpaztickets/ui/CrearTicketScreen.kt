@@ -70,7 +70,6 @@ fun CrearTicketScreen(
                     viewModel.insertarTicket(nuevoTicket)
                     Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT).show()
 
-                    // Al guardar con éxito, regresa automáticamente al feed
                     onTicketGuardado()
                 } else {
                     Toast.makeText(context, "Falta titulo o descripcion", Toast.LENGTH_SHORT).show()
