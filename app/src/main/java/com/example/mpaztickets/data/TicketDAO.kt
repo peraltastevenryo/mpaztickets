@@ -1,0 +1,25 @@
+package com.example.mpaztickets.data
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TicketDAO {
+    @Insert
+    suspend fun insertarTicket(ticket: Ticket)
+
+    @Update
+    suspend fun actualizarTicket(ticket: Ticket)
+
+    @Query("SELECT * FROM tickets ORDER BY fechaCreacion DESC")
+    fun obtenerTodosLosTickets(): Flow<List<Ticket>>
+
+    @Query("SELECT * FROM tickets WHERE solicitante = :nombreSolicitante ORDER BY fechaCreacion DESC")
+    fun obtenerTicketsPorSoli(nombreSolicitante: String): Flow<List<Ticket>>
+
+    @Query("SELECT * FROM tickets WHERE responsable = :nombreResponsable ORDER BY fechaCreacion DESC")
+    fun obtenerTicketsPorRespo(nombreResponsable: String): Flow<List<Ticket>>
+}
