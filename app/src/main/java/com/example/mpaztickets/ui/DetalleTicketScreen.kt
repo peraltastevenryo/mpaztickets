@@ -2,6 +2,7 @@ package com.example.mpaztickets.ui
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
 
@@ -28,6 +31,7 @@ fun DetalleTicketScreen(
 
     var responsableSeleccionado by remember { mutableStateOf("") }
     var expandedResponsable by remember { mutableStateOf(false) }
+    var mostrarImagenAmpliada by remember { mutableStateOf(false) }
 
     val listaResponsables by usuarioViewModel.listaResponsables.collectAsState(initial = emptyList())
 
@@ -43,6 +47,30 @@ fun DetalleTicketScreen(
         if (encontrado != null) {
             estadoSeleccionado = encontrado.estado
             responsableSeleccionado = encontrado.responsable ?: ""
+        }
+    }
+
+    if (mostrarImagenAmpliada && !ticket?.fotoProblema.isNullOrEmpty()) {
+        Dialog(
+            onDismissRequest = { mostrarImagenAmpliada = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { mostrarImagenAmpliada = false },
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                val imagePainter = rememberAsyncImagePainter(model = Uri.parse(ticket?.fotoProblema))
+                Image(
+                    painter = imagePainter,
+                    contentDescription = "Foto ampliada",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.85.dp.value),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
     }
 
@@ -187,7 +215,7 @@ fun DetalleTicketScreen(
 
                         if (!currentTicket.fotoProblema.isNullOrEmpty()) {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(text = "Evidencia fotografica:", style = MaterialTheme.typography.titleSmall)
+                            Text(text = "Evidencia fotografica (toca para ampliar):", style = MaterialTheme.typography.titleSmall)
                             Spacer(modifier = Modifier.height(8.dp))
 
                             val imagePainter = rememberAsyncImagePainter(model = Uri.parse(currentTicket.fotoProblema))
@@ -196,7 +224,8 @@ fun DetalleTicketScreen(
                                 contentDescription = "Foto del problema",
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(250.dp),
+                                    .height(250.dp)
+                                    .clickable { mostrarImagenAmpliada = true },
                                 contentScale = ContentScale.Crop
                             )
                         }
