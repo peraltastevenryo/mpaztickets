@@ -57,6 +57,9 @@ fun Navegacion(
                 viewModel = ticketViewModel,
                 onTicketGuardado = {
                     navController.popBackStack()
+                },
+                onVolverAtras = {
+                    navController.popBackStack()
                 }
             )
         }
