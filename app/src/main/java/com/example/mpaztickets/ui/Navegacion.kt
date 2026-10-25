@@ -18,7 +18,7 @@ fun Navegacion(
             LoginScreen(
                 viewModel = usuarioViewModel,
                 onLoginExitoso = {
-                    // Al hacer login, ahora vamos directo al Feed de Tickets
+                    
                     navController.navigate("feed_tickets") {
                         popUpTo("login") { inclusive = true }
                     }
