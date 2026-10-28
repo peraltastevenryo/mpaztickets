@@ -31,7 +31,8 @@ fun LoginScreen(
     val context = LocalContext.current
 
     val errorCorreo = validarCorreo(correo)
-    val errorContrasena = validarObligatorio(contrasena, "La contraseña") ?: errorCredenciales
+    val errorContrasena = validarObligatorio(contrasena, "La contraseña")
+    val textoErrorAbajo = errorCredenciales ?: errorContrasena
 
     Column(
         modifier = Modifier
@@ -47,27 +48,29 @@ fun LoginScreen(
 
         CampoTexto(
             valor = correo,
-            onValorChange = { 
+            onValorChange = {
                 correo = it
-                errorCredenciales = null 
+                errorCredenciales = null
             },
             etiqueta = "Correo electronico",
             error = errorCorreo,
-            mostrarError = intentoIngresar
+            mostrarError = intentoIngresar,
+            forzarErrorVisual = errorCredenciales != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         CampoTexto(
             valor = contrasena,
-            onValorChange = { 
+            onValorChange = {
                 contrasena = it
-                errorCredenciales = null 
+                errorCredenciales = null
             },
             etiqueta = "Contraseña",
-            error = errorContrasena,
-            mostrarError = intentoIngresar,
-            esContrasena = true
+            error = textoErrorAbajo,
+            mostrarError = intentoIngresar || errorCredenciales != null,
+            esContrasena = true,
+            forzarErrorVisual = errorCredenciales != null
         )
 
         Spacer(modifier = Modifier.height(32.dp))
