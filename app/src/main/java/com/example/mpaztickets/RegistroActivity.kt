@@ -9,6 +9,7 @@ import com.example.mpaztickets.data.UsuarioRepository
 import com.example.mpaztickets.ui.RegistroScreen
 import com.example.mpaztickets.ui.UsuarioViewModel
 import com.example.mpaztickets.ui.UsuarioViewModelFactory
+import com.example.mpaztickets.ui.theme.MpazticketsTheme
 
 class RegistroActivity : ComponentActivity() {
 
@@ -23,6 +24,20 @@ class RegistroActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            MpazticketsTheme {
+                RegistroScreen(
+                    viewModel = usuarioViewModel,
+                    onRegistroExitoso = {
+                        finish()
+                    },
+                    onVolverALogin = {
+                        finish()
+                    }
+                )
+            }
+        }
+    }
+}
             RegistroScreen(
                 viewModel = usuarioViewModel,
                 onRegistroExitoso = {

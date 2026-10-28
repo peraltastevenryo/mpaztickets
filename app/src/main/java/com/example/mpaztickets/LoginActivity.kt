@@ -10,7 +10,7 @@ import com.example.mpaztickets.data.UsuarioRepository
 import com.example.mpaztickets.ui.LoginScreen
 import com.example.mpaztickets.ui.UsuarioViewModel
 import com.example.mpaztickets.ui.UsuarioViewModelFactory
-import kotlin.jvm.java
+import com.example.mpaztickets.ui.theme.MpazticketsTheme
 
 class LoginActivity : ComponentActivity() {
 
@@ -25,6 +25,26 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            MpazticketsTheme {
+                LoginScreen(
+                    viewModel = usuarioViewModel,
+                    onLoginExitoso = { rol, nombre ->
+                        val intent = Intent(this, TicketsActivity::class.java).apply {
+                            putExtra("ROL_USUARIO", rol)
+                            putExtra("NOMBRE_USUARIO", nombre)
+                        }
+                        startActivity(intent)
+                        finish()
+                    },
+                    onIrARegistro = {
+                        val intent = Intent(this, RegistroActivity::class.java)
+                        startActivity(intent)
+                    }
+                )
+            }
+        }
+    }
+}
             LoginScreen(
                 viewModel = usuarioViewModel,
                 onLoginExitoso = { rol, nombre ->

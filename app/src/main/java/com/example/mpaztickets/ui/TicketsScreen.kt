@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mpaztickets.ui.componentes.EtiquetaEstado
 
 @Composable
 fun TicketsScreen(
@@ -88,7 +89,7 @@ fun TicketsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val tituloPantalla = when {
-                    esAdmin -> "Panel de Administración"
+                    esAdmin -> "Panel de Administracion"
                     esResponsable -> "Mis Casos Asignados"
                     else -> "Problemas registrados"
                 }
@@ -127,7 +128,7 @@ fun TicketsScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "No hay tickets disponibles.")
+                    Text(text = "No hay tickets disponibles")
                 }
             } else {
                 LazyColumn(
@@ -136,10 +137,11 @@ fun TicketsScreen(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    items(listaTickets) { ticket ->
+                    items(listaTickets, key = { it.id }) { ticket ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .animateItem()
                                 .clickable { onIrADetalle(ticket.id) },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
@@ -154,12 +156,13 @@ fun TicketsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = ticket.titulo,
+                                        text = "#${ticket.id} ${ticket.titulo}",
                                         style = MaterialTheme.typography.titleLarge,
                                         modifier = Modifier.weight(1f)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
 
+                                    EtiquetaEstado(estado = ticket.estado)
                                     Text(
                                         text = "Estado: ${ticket.estado}",
                                         style = MaterialTheme.typography.bodySmall,
@@ -173,7 +176,7 @@ fun TicketsScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Ubicacion: ${ticket.ubicacion}",
+                                        text = "Ubicación: ${ticket.ubicacion}",
                                         style = MaterialTheme.typography.bodySmall
                                     )
 

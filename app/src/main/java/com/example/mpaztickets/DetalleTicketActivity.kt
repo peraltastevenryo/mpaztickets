@@ -12,6 +12,7 @@ import com.example.mpaztickets.ui.TicketViewModel
 import com.example.mpaztickets.ui.TicketViewModelFactory
 import com.example.mpaztickets.ui.UsuarioViewModel
 import com.example.mpaztickets.ui.UsuarioViewModelFactory
+import com.example.mpaztickets.ui.theme.MpazticketsTheme
 
 class DetalleTicketActivity : ComponentActivity() {
 
@@ -38,6 +39,20 @@ class DetalleTicketActivity : ComponentActivity() {
         val rolUsuario = intent.getStringExtra("ROL_USUARIO") ?: "Usuario"
 
         setContent {
+            MpazticketsTheme {
+                DetalleTicketScreen(
+                    viewModel = ticketViewModel,
+                    usuarioViewModel = usuarioViewModel,
+                    ticketId = ticketId,
+                    rolUsuario = rolUsuario,
+                    onVolverAtras = {
+                        finish()
+                    }
+                )
+            }
+        }
+    }
+}
             DetalleTicketScreen(
                 viewModel = ticketViewModel,
                 usuarioViewModel = usuarioViewModel,

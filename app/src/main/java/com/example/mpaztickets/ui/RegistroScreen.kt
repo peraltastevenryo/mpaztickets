@@ -3,14 +3,19 @@ package com.example.mpaztickets.ui
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.mpaztickets.ui.componentes.CampoSelector
+import com.example.mpaztickets.ui.componentes.CampoTexto
+import com.example.mpaztickets.validacion.validarContrasena
+import com.example.mpaztickets.validacion.validarCorreo
+import com.example.mpaztickets.validacion.validarNombre
+import com.example.mpaztickets.validacion.validarSeleccion
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,21 +29,30 @@ fun RegistroScreen(
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var rol by remember { mutableStateOf("") }
+    var intentoRegistrar by remember { mutableStateOf(false) }
 
-    var expanded by remember { mutableStateOf(false) }
     val rolesDisponibles = listOf("Usuario", "Responsable", "Admin")
-
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val errorNombre = validarNombre(nombre)
+    val errorCorreo = validarCorreo(correo)
+    val errorContrasena = validarContrasena(contrasena)
+    val errorRol = validarSeleccion(rol, "un rol")
+
+    val formularioValido = errorNombre == null &&
+            errorCorreo == null &&
+            errorContrasena == null &&
+            errorRol == null
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("") },
+                title = { Text("Crear Cuenta") },
                 navigationIcon = {
                     IconButton(onClick = onVolverALogin) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver"
                         )
                     }
@@ -52,100 +66,66 @@ fun RegistroScreen(
                 .padding(paddingValues)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
-            Text(text = "Crear Cuenta", style = MaterialTheme.typography.headlineLarge)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre completo") },
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = nombre,
+                onValorChange = { nombre = it },
+                etiqueta = "Nombre completo",
+                error = errorNombre,
+                mostrarError = intentoRegistrar
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo electronico") },
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = correo,
+                onValorChange = { correo = it },
+                etiqueta = "Correo electronico",
+                error = errorCorreo,
+                mostrarError = intentoRegistrar
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = contrasena,
-                onValueChange = { contrasena = it },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = contrasena,
+                onValorChange = { contrasena = it },
+                etiqueta = "Contraseña",
+                error = errorContrasena,
+                mostrarError = intentoRegistrar,
+                esContrasena = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = rol,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Selecciona un Rol") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    rolesDisponibles.forEach { opcionRol ->
-                        DropdownMenuItem(
-                            text = { Text(opcionRol) },
-                            onClick = {
-                                rol = opcionRol
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            CampoSelector(
+                valor = rol,
+                opciones = rolesDisponibles,
+                onSeleccion = { rol = it },
+                etiqueta = "Selecciona un rol",
+                error = errorRol,
+                mostrarError = intentoRegistrar
+            )
 
             Button(
                 onClick = {
-                    if (nombre.isNotBlank() && correo.isNotBlank() && contrasena.isNotBlank() && rol.isNotBlank()) {
+                    intentoRegistrar = true
+                    if (formularioValido) {
                         coroutineScope.launch {
-                            val exito = viewModel.registrarUsuario(nombre, correo, contrasena, rol)
+                            val exito = viewModel.registrarUsuario(nombre.trim(), correo.trim(), contrasena, rol)
                             if (exito) {
                                 Toast.makeText(context, "Cuenta creada", Toast.LENGTH_SHORT).show()
                                 onRegistroExitoso()
                             } else {
-                                Toast.makeText(context, "El correo ya existe", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "El correo ya esta registrado", Toast.LENGTH_SHORT).show()
                             }
                         }
-                    } else {
-                        Toast.makeText(context, "Llena todos los campos y selecciona un rol", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
             ) {
                 Text("Registrarse")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             TextButton(onClick = onVolverALogin) {
-                Text("Ya tienes cuenta? Inicia sesion")
+                Text("¿Ya tienes cuenta? Inicia sesion")
             }
         }
     }

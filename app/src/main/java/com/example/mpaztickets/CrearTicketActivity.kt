@@ -9,6 +9,7 @@ import com.example.mpaztickets.data.TicketRepository
 import com.example.mpaztickets.ui.CrearTicketScreen
 import com.example.mpaztickets.ui.TicketViewModel
 import com.example.mpaztickets.ui.TicketViewModelFactory
+import com.example.mpaztickets.ui.theme.MpazticketsTheme
 
 class CrearTicketActivity : ComponentActivity() {
 
@@ -26,6 +27,21 @@ class CrearTicketActivity : ComponentActivity() {
         val nombreUsuario = intent.getStringExtra("NOMBRE_USUARIO") ?: ""
 
         setContent {
+            MpazticketsTheme {
+                CrearTicketScreen(
+                    viewModel = ticketViewModel,
+                    nombreUsuario = nombreUsuario,
+                    onTicketGuardado = {
+                        finish()
+                    },
+                    onVolverAtras = {
+                        finish()
+                    }
+                )
+            }
+        }
+    }
+}
             CrearTicketScreen(
                 viewModel = ticketViewModel,
                 nombreUsuario = nombreUsuario,
