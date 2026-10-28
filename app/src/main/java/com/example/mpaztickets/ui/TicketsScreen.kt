@@ -163,11 +163,6 @@ fun TicketsScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     EtiquetaEstado(estado = ticket.estado)
-                                    Text(
-                                        text = "Estado: ${ticket.estado}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
                                 }
 
                                 Spacer(modifier = Modifier.height(6.dp))
