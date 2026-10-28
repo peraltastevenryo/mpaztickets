@@ -13,18 +13,43 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Mpaztickets">
+
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Mpaztickets"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".TicketsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Mpaztickets"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".RegistroActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Mpaztickets"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".CrearTicketActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Mpaztickets"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".DetalleTicketActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Mpaztickets"
+            android:windowSoftInputMode="adjustResize" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

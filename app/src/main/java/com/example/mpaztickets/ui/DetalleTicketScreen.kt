@@ -2,6 +2,7 @@ package com.example.mpaztickets.ui
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
 
@@ -17,6 +20,7 @@ import com.example.mpaztickets.data.Ticket
 @Composable
 fun DetalleTicketScreen(
     viewModel: TicketViewModel,
+    usuarioViewModel: UsuarioViewModel,
     ticketId: Int,
     rolUsuario: String,
     onVolverAtras: () -> Unit
@@ -25,15 +29,48 @@ fun DetalleTicketScreen(
     var estadoSeleccionado by remember { mutableStateOf("") }
     var expandedEstado by remember { mutableStateOf(false) }
 
+    var responsableSeleccionado by remember { mutableStateOf("") }
+    var expandedResponsable by remember { mutableStateOf(false) }
+    var mostrarImagenAmpliada by remember { mutableStateOf(false) }
+
+    val listaResponsables by usuarioViewModel.listaResponsables.collectAsState(initial = emptyList())
+
     val rolLimpio = rolUsuario.lowercase().trim()
     val esResponsable = rolLimpio == "responsable"
-    val estadosPosibles = listOf("Pendiente", "En Proceso", "Resuelto")
+    val esAdmin = rolLimpio == "administrador" || rolLimpio == "admin"
+
+    val estadosPosibles = listOf("Pendiente", "Revisado", "Asignado", "En Proceso", "Solucionado", "Cerrado")
 
     LaunchedEffect(ticketId) {
         val encontrado = viewModel.obtenerTicketPorId(ticketId)
         ticket = encontrado
         if (encontrado != null) {
             estadoSeleccionado = encontrado.estado
+            responsableSeleccionado = encontrado.responsable ?: ""
+        }
+    }
+
+    if (mostrarImagenAmpliada && !ticket?.fotoProblema.isNullOrEmpty()) {
+        Dialog(
+            onDismissRequest = { mostrarImagenAmpliada = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { mostrarImagenAmpliada = false },
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                val imagePainter = rememberAsyncImagePainter(model = Uri.parse(ticket?.fotoProblema))
+                Image(
+                    painter = imagePainter,
+                    contentDescription = "Foto ampliada",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.85.dp.value),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
     }
 
@@ -81,10 +118,58 @@ fun DetalleTicketScreen(
                         Text(text = "Ubicacion: ${currentTicket.ubicacion}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Prioridad: ${currentTicket.prioridad}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Solicitante: ${currentTicket.solicitante}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "Responsable actual: ${currentTicket.responsable ?: "Sin asignar"}", style = MaterialTheme.typography.bodyMedium)
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Divider()
                         Spacer(modifier = Modifier.height(8.dp))
+
+                        if (esAdmin) {
+                            Text(text = "Asignar a Responsable:", style = MaterialTheme.typography.titleSmall)
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            ExposedDropdownMenuBox(
+                                expanded = expandedResponsable,
+                                onExpandedChange = { expandedResponsable = !expandedResponsable },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = if (responsableSeleccionado.isEmpty()) "Seleccionar responsable" else responsableSeleccionado,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Responsable") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedResponsable) },
+                                    modifier = Modifier
+                                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+                                        .fillMaxWidth()
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = expandedResponsable,
+                                    onDismissRequest = { expandedResponsable = false }
+                                ) {
+                                    if (listaResponsables.isEmpty()) {
+                                        DropdownMenuItem(
+                                            text = { Text("No hay usuarios responsables creados") },
+                                            onClick = { expandedResponsable = false }
+                                        )
+                                    } else {
+                                        listaResponsables.forEach { usuarioResp ->
+                                            DropdownMenuItem(
+                                                text = { Text(usuarioResp.nombre) },
+                                                onClick = {
+                                                    responsableSeleccionado = usuarioResp.nombre
+                                                    expandedResponsable = false
+                                                    viewModel.asignarResponsableATicket(currentTicket, usuarioResp.nombre)
+                                                    ticket = currentTicket.copy(responsable = usuarioResp.nombre, estado = "Asignado")
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
 
                         if (esResponsable) {
                             Text(text = "Actualizar Estado:", style = MaterialTheme.typography.titleSmall)
@@ -124,13 +209,13 @@ fun DetalleTicketScreen(
                                     }
                                 }
                             }
-                        } else {
+                        } else if (!esAdmin) {
                             Text(text = "Estado actual: ${currentTicket.estado}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.secondary)
                         }
 
                         if (!currentTicket.fotoProblema.isNullOrEmpty()) {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(text = "Evidencia fotografica:", style = MaterialTheme.typography.titleSmall)
+                            Text(text = "Evidencia fotografica (toca para ampliar):", style = MaterialTheme.typography.titleSmall)
                             Spacer(modifier = Modifier.height(8.dp))
 
                             val imagePainter = rememberAsyncImagePainter(model = Uri.parse(currentTicket.fotoProblema))
@@ -139,7 +224,8 @@ fun DetalleTicketScreen(
                                 contentDescription = "Foto del problema",
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(250.dp),
+                                    .height(250.dp)
+                                    .clickable { mostrarImagenAmpliada = true },
                                 contentScale = ContentScale.Crop
                             )
                         }

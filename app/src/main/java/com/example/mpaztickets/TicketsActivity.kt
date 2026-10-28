@@ -12,6 +12,7 @@ import com.example.mpaztickets.ui.TicketsScreen
 import com.example.mpaztickets.ui.TicketViewModel
 import com.example.mpaztickets.ui.TicketViewModelFactory
 import com.example.mpaztickets.ui.theme.MpazticketsTheme
+import kotlin.jvm.java
 
 class TicketsActivity : ComponentActivity() {
 
@@ -65,6 +66,32 @@ class TicketsActivity : ComponentActivity() {
                     }
                 )
             }
+        }
+    }
+}
+            TicketsScreen(
+                viewModel = ticketViewModel,
+                rolUsuario = rolUsuario,
+                nombreUsuario = nombreUsuario,
+                onIrACrearTicket = {
+                    val intent = Intent(this, CrearTicketActivity::class.java).apply {
+                        putExtra("NOMBRE_USUARIO", nombreUsuario)
+                    }
+                    startActivity(intent)
+                },
+                onIrADetalle = { ticketId ->
+                    val intent = Intent(this, DetalleTicketActivity::class.java).apply {
+                        putExtra("TICKET_ID", ticketId)
+                        putExtra("ROL_USUARIO", rolUsuario)
+                    }
+                    startActivity(intent)
+                },
+                onCerrarSesion = {
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+            )
         }
     }
 }

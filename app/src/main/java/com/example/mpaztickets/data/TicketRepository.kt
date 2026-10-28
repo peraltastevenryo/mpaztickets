@@ -29,4 +29,9 @@ class TicketRepository(private val ticketDao: TicketDAO) {
     fun obtenerTicketsPorPrioridad(): Flow<List<Ticket>> {
         return ticketDao.obtenerTicketsPorPrioridad()
     }
+
+    fun obtenerTicketsPorResponsableYPrioridad(nombreResponsable: String): Flow<List<Ticket>> {
+        return ticketDao.obtenerTicketsPorResponsableYPrioridad(nombreResponsable)
+    }
+
 }

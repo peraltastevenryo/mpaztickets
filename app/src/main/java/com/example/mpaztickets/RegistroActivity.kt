@@ -38,3 +38,15 @@ class RegistroActivity : ComponentActivity() {
         }
     }
 }
+            RegistroScreen(
+                viewModel = usuarioViewModel,
+                onRegistroExitoso = {
+                    finish()
+                },
+                onVolverALogin = {
+                    finish()
+                }
+            )
+        }
+    }
+}

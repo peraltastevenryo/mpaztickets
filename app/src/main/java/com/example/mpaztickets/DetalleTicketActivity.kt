@@ -53,3 +53,15 @@ class DetalleTicketActivity : ComponentActivity() {
         }
     }
 }
+            DetalleTicketScreen(
+                viewModel = ticketViewModel,
+                usuarioViewModel = usuarioViewModel,
+                ticketId = ticketId,
+                rolUsuario = rolUsuario,
+                onVolverAtras = {
+                    finish()
+                }
+            )
+        }
+    }
+}
