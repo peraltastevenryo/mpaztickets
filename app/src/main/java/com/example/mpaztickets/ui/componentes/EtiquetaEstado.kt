@@ -18,11 +18,11 @@ import androidx.compose.ui.unit.dp
 fun EtiquetaEstado(estado: String) {
     val colorObjetivo = when (estado) {
         "Pendiente" -> Color(0xFF9E9E9E)
-        "Revisado" -> Color(0xFF5C6BC0)
+        "Revisado" -> Color(0xFF9C27B0)
         "Asignado" -> Color(0xFF0288D1)
         "En Proceso" -> Color(0xFFF57C00)
         "Solucionado" -> Color(0xFF43A047)
-        "Cerrado" -> Color(0xFF1B5E20)
+        "Cerrado" -> Color(0xFFD32F2F)
         else -> Color(0xFFD32F2F)
     }
 

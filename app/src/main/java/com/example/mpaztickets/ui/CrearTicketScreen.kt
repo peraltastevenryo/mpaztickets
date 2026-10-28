@@ -25,7 +25,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
 import com.example.mpaztickets.data.listaCategorias
 import com.example.mpaztickets.data.listaPrioridades
-import com.example.mpaztickets.data.listaUbicaciones
 import com.example.mpaztickets.ui.componentes.CampoSelector
 import com.example.mpaztickets.ui.componentes.CampoTexto
 import com.example.mpaztickets.validacion.validarDescripcion
@@ -42,8 +41,9 @@ fun CrearTicketScreen(
 ) {
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var categoria by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
+    var categoria by remember { mutableStateOf("") }
+    var otraCategoria by remember { mutableStateOf("") }
     var prioridad by remember { mutableStateOf("Normal") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
     var intentoGuardar by remember { mutableStateOf(false) }
@@ -52,13 +52,15 @@ fun CrearTicketScreen(
 
     val errorTitulo = validarTitulo(titulo)
     val errorDescripcion = validarDescripcion(descripcion)
+    val errorUbicacion = validarTitulo(ubicacion)
     val errorCategoria = validarSeleccion(categoria, "una categoria")
-    val errorUbicacion = validarSeleccion(ubicacion, "una ubicacion")
+    val errorOtraCategoria = if (categoria == "Otra" && otraCategoria.isBlank()) "Ingresa la nueva categoria" else null
 
     val formularioValido = errorTitulo == null &&
             errorDescripcion == null &&
+            errorUbicacion == null &&
             errorCategoria == null &&
-            errorUbicacion == null
+            errorOtraCategoria == null
 
     val photoFile = remember {
         File(context.cacheDir, "ticket_foto_${System.currentTimeMillis()}.jpg")
@@ -114,6 +116,14 @@ fun CrearTicketScreen(
             mostrarError = intentoGuardar
         )
 
+        CampoTexto(
+            valor = ubicacion,
+            onValorChange = { ubicacion = it },
+            etiqueta = "Ubicacion",
+            error = errorUbicacion,
+            mostrarError = intentoGuardar
+        )
+
         CampoSelector(
             valor = categoria,
             opciones = listaCategorias,
@@ -123,14 +133,15 @@ fun CrearTicketScreen(
             mostrarError = intentoGuardar
         )
 
-        CampoSelector(
-            valor = ubicacion,
-            opciones = listaUbicaciones,
-            onSeleccion = { ubicacion = it },
-            etiqueta = "Ubicacion",
-            error = errorUbicacion,
-            mostrarError = intentoGuardar
-        )
+        AnimatedVisibility(visible = categoria == "Otra") {
+            CampoTexto(
+                valor = otraCategoria,
+                onValorChange = { otraCategoria = it },
+                etiqueta = "Escribe la categoria",
+                error = errorOtraCategoria,
+                mostrarError = intentoGuardar
+            )
+        }
 
         CampoSelector(
             valor = prioridad,
@@ -183,11 +194,13 @@ fun CrearTicketScreen(
             onClick = {
                 intentoGuardar = true
                 if (formularioValido) {
+                    val categoriaFinal = if (categoria == "Otra") otraCategoria.trim() else categoria
+
                     val nuevoTicket = Ticket(
                         titulo = titulo.trim(),
                         descripcion = descripcion.trim(),
-                        categoria = categoria,
-                        ubicacion = ubicacion,
+                        categoria = categoriaFinal,
+                        ubicacion = ubicacion.trim(),
                         prioridad = prioridad,
                         solicitante = nombreUsuario,
                         fotoProblema = imagenUri?.toString()
