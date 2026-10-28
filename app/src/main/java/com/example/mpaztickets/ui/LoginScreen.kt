@@ -25,12 +25,13 @@ fun LoginScreen(
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var intentoIngresar by remember { mutableStateOf(false) }
+    var errorCredenciales by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val errorCorreo = validarCorreo(correo)
-    val errorContrasena = validarObligatorio(contrasena, "La contraseña")
+    val errorCorreo = validarCorreo(correo) ?: errorCredenciales
+    val errorContrasena = validarObligatorio(contrasena, "La contraseña") ?: errorCredenciales
 
     Column(
         modifier = Modifier
@@ -46,20 +47,26 @@ fun LoginScreen(
 
         CampoTexto(
             valor = correo,
-            onValorChange = { correo = it },
+            onValorChange = { 
+                correo = it
+                errorCredenciales = null 
+            },
             etiqueta = "Correo electronico",
             error = errorCorreo,
-            mostrarError = intentoIngresar
+            mostrarError = intentoIngresar || errorCredenciales != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         CampoTexto(
             valor = contrasena,
-            onValorChange = { contrasena = it },
+            onValorChange = { 
+                contrasena = it
+                errorCredenciales = null 
+            },
             etiqueta = "Contraseña",
             error = errorContrasena,
-            mostrarError = intentoIngresar,
+            mostrarError = intentoIngresar || errorCredenciales != null,
             esContrasena = true
         )
 
@@ -68,7 +75,7 @@ fun LoginScreen(
         Button(
             onClick = {
                 intentoIngresar = true
-                if (errorCorreo == null && errorContrasena == null) {
+                if (validarCorreo(correo) == null && validarObligatorio(contrasena, "La contraseña") == null) {
                     coroutineScope.launch {
                         val exito = viewModel.iniciarSesion(correo.trim(), contrasena)
                         if (exito) {
@@ -77,6 +84,7 @@ fun LoginScreen(
                                 onLoginExitoso(usuario.rol, usuario.nombre)
                             }
                         } else {
+                            errorCredenciales = "Correo o contraseña incorrectos"
                             Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
                         }
                     }
