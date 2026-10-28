@@ -53,7 +53,7 @@ fun LoginScreen(
             },
             etiqueta = "Correo electronico",
             error = errorCorreo,
-            mostrarError = (intentoIngresar && errorCredenciales == null) || errorCorreo != null
+            mostrarError = intentoIngresar
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -66,7 +66,7 @@ fun LoginScreen(
             },
             etiqueta = "Contraseña",
             error = errorContrasena,
-            mostrarError = intentoIngresar || errorCredenciales != null,
+            mostrarError = intentoIngresar,
             esContrasena = true
         )
 
