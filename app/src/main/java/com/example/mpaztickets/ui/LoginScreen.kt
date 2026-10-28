@@ -30,7 +30,7 @@ fun LoginScreen(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val errorCorreo = validarCorreo(correo) ?: errorCredenciales
+    val errorCorreo = validarCorreo(correo)
     val errorContrasena = validarObligatorio(contrasena, "La contraseña") ?: errorCredenciales
 
     Column(
@@ -53,7 +53,7 @@ fun LoginScreen(
             },
             etiqueta = "Correo electronico",
             error = errorCorreo,
-            mostrarError = intentoIngresar || errorCredenciales != null
+            mostrarError = (intentoIngresar && errorCredenciales == null) || errorCorreo != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
