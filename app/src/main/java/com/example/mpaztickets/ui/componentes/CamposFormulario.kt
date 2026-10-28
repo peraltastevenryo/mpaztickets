@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -42,21 +42,23 @@ fun CampoTexto(
     etiqueta: String,
     error: String?,
     mostrarError: Boolean,
-    esContrasena: Boolean = false
+    esContrasena: Boolean = false,
+    forzarErrorVisual: Boolean = false
 ) {
-    val hayError = mostrarError && error != null
+    val tieneTextoError = mostrarError && error != null
+    val hayErrorVisual = tieneTextoError || forzarErrorVisual
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = valor,
             onValueChange = onValorChange,
             label = { Text(etiqueta) },
-            isError = hayError,
+            isError = hayErrorVisual,
             singleLine = true,
             visualTransformation = if (esContrasena) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
-                if (hayError) {
-                    Icon(Icons.Filled.Error, contentDescription = "Error", tint = MaterialTheme.colorScheme.error)
+                if (hayErrorVisual) {
+                    Icon(Icons.Filled.Clear, contentDescription = "Error", tint = MaterialTheme.colorScheme.error)
                 } else if (mostrarError) {
                     Icon(Icons.Filled.CheckCircle, contentDescription = "Correcto", tint = MaterialTheme.colorScheme.primary)
                 }
@@ -64,7 +66,7 @@ fun CampoTexto(
             modifier = Modifier.fillMaxWidth()
         )
 
-        MensajeError(visible = hayError, texto = error ?: "")
+        MensajeError(visible = tieneTextoError, texto = error ?: "")
     }
 }
 
@@ -131,7 +133,7 @@ fun MensajeError(visible: Boolean, texto: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Filled.Error,
+                Icons.Filled.Clear,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(16.dp)
