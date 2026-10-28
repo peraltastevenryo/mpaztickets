@@ -5,16 +5,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
+import com.example.mpaztickets.ui.componentes.EtiquetaEstado
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +107,10 @@ fun DetalleTicketScreen(
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
+                        Text(text = "Ticket #${currentTicket.id}", style = MaterialTheme.typography.labelLarge)
                         Text(text = currentTicket.titulo, style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        EtiquetaEstado(estado = currentTicket.estado)
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(text = "Descripcion:", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
@@ -225,6 +231,7 @@ fun DetalleTicketScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(250.dp)
+                                    .clip(RoundedCornerShape(16.dp)) // bordes redondeados
                                     .clickable { mostrarImagenAmpliada = true },
                                 contentScale = ContentScale.Crop
                             )
