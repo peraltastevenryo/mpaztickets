@@ -89,4 +89,4 @@ Flujo: **Screen → ViewModel → Repository → DAO → Room**. La interfaz obs
 
 ## Planificación
 
-Tablero Trello: 
+Tablero Trello: https://trello.com/b/WebKpjUk
