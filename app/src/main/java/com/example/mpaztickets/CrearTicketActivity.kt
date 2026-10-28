@@ -42,16 +42,3 @@ class CrearTicketActivity : ComponentActivity() {
         }
     }
 }
-            CrearTicketScreen(
-                viewModel = ticketViewModel,
-                nombreUsuario = nombreUsuario,
-                onTicketGuardado = {
-                    finish()
-                },
-                onVolverAtras = {
-                    finish()
-                }
-            )
-        }
-    }
-}
