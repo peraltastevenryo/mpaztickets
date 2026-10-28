@@ -45,21 +45,3 @@ class LoginActivity : ComponentActivity() {
         }
     }
 }
-            LoginScreen(
-                viewModel = usuarioViewModel,
-                onLoginExitoso = { rol, nombre ->
-                    val intent = Intent(this, TicketsActivity::class.java).apply {
-                        putExtra("ROL_USUARIO", rol)
-                        putExtra("NOMBRE_USUARIO", nombre)
-                    }
-                    startActivity(intent)
-                    finish()
-                },
-                onIrARegistro = {
-                    val intent = Intent(this, RegistroActivity::class.java)
-                    startActivity(intent)
-                }
-            )
-        }
-    }
-}
