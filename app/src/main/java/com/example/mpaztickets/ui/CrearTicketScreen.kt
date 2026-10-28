@@ -6,18 +6,33 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
+import com.example.mpaztickets.data.listaCategorias
+import com.example.mpaztickets.data.listaPrioridades
+import com.example.mpaztickets.data.listaUbicaciones
+import com.example.mpaztickets.ui.componentes.CampoSelector
+import com.example.mpaztickets.ui.componentes.CampoTexto
+import com.example.mpaztickets.validacion.validarDescripcion
+import com.example.mpaztickets.validacion.validarSeleccion
+import com.example.mpaztickets.validacion.validarTitulo
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrearTicketScreen(
     viewModel: TicketViewModel,
@@ -29,30 +44,33 @@ fun CrearTicketScreen(
     var descripcion by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
-    var prioridadSeleccionada by remember { mutableStateOf("Normal") }
-    var expanded by remember { mutableStateOf(false) }
+    var prioridad by remember { mutableStateOf("Normal") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
+    var intentoGuardar by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    val opcionesPrioridad = listOf("Baja", "Normal", "Alta")
+
+    val errorTitulo = validarTitulo(titulo)
+    val errorDescripcion = validarDescripcion(descripcion)
+    val errorCategoria = validarSeleccion(categoria, "una categoria")
+    val errorUbicacion = validarSeleccion(ubicacion, "una ubicacion")
+
+    val formularioValido = errorTitulo == null &&
+            errorDescripcion == null &&
+            errorCategoria == null &&
+            errorUbicacion == null
 
     val photoFile = remember {
         File(context.cacheDir, "ticket_foto_${System.currentTimeMillis()}.jpg")
     }
     val tempUri = remember {
-        FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            photoFile
-        )
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) {
-            imagenUri = tempUri
-        }
+        if (success) imagenUri = tempUri
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -68,84 +86,69 @@ fun CrearTicketScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            imagenUri = uri
-        }
+        if (uri != null) imagenUri = uri
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(text = "Ingresar Nuevo Ticket", style = MaterialTheme.typography.titleLarge)
 
-        OutlinedTextField(
-            value = titulo,
-            onValueChange = { titulo = it },
-            label = { Text("Titulo") },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+        CampoTexto(
+            valor = titulo,
+            onValorChange = { titulo = it },
+            etiqueta = "Titulo",
+            error = errorTitulo,
+            mostrarError = intentoGuardar
         )
 
-        OutlinedTextField(
-            value = descripcion,
-            onValueChange = { descripcion = it },
-            label = { Text("Descripcion del problema") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        CampoTexto(
+            valor = descripcion,
+            onValorChange = { descripcion = it },
+            etiqueta = "Descripcion del problema",
+            error = errorDescripcion,
+            mostrarError = intentoGuardar
         )
 
-        OutlinedTextField(
-            value = categoria,
-            onValueChange = { categoria = it },
-            label = { Text("Categoría (ej: electricidad)") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        CampoSelector(
+            valor = categoria,
+            opciones = listaCategorias,
+            onSeleccion = { categoria = it },
+            etiqueta = "Categoria",
+            error = errorCategoria,
+            mostrarError = intentoGuardar
         )
 
-        OutlinedTextField(
-            value = ubicacion,
-            onValueChange = { ubicacion = it },
-            label = { Text("Ubicacion (ej: sala 4)") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        CampoSelector(
+            valor = ubicacion,
+            opciones = listaUbicaciones,
+            onSeleccion = { ubicacion = it },
+            etiqueta = "Ubicacion",
+            error = errorUbicacion,
+            mostrarError = intentoGuardar
         )
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = prioridadSeleccionada,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Prioridad") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth()
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                opcionesPrioridad.forEach { opcion ->
-                    DropdownMenuItem(
-                        text = { Text(opcion) },
-                        onClick = {
-                            prioridadSeleccionada = opcion
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
+        CampoSelector(
+            valor = prioridad,
+            opciones = listaPrioridades,
+            onSeleccion = { prioridad = it },
+            etiqueta = "Prioridad",
+            error = null,
+            mostrarError = false
+        )
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedButton(
                 onClick = {
-                    val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                    if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                    val permiso = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                    if (permiso == PackageManager.PERMISSION_GRANTED) {
                         cameraLauncher.launch(tempUri)
                     } else {
                         permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -153,46 +156,59 @@ fun CrearTicketScreen(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(if (imagenUri == null) "Tomar Foto" else "Foto Lista ✓")
+                Text("Tomar Foto")
             }
 
             OutlinedButton(
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Galería")
+                Text("Galeria")
             }
+        }
+
+        AnimatedVisibility(visible = imagenUri != null) {
+            Image(
+                painter = rememberAsyncImagePainter(model = imagenUri),
+                contentDescription = "Vista previa de la foto",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
         }
 
         Button(
             onClick = {
-                if (titulo.isNotBlank() && descripcion.isNotBlank()) {
+                intentoGuardar = true
+                if (formularioValido) {
                     val nuevoTicket = Ticket(
-                        titulo = titulo,
-                        descripcion = descripcion,
+                        titulo = titulo.trim(),
+                        descripcion = descripcion.trim(),
                         categoria = categoria,
                         ubicacion = ubicacion,
-                        prioridad = prioridadSeleccionada,
+                        prioridad = prioridad,
                         solicitante = nombreUsuario,
                         fotoProblema = imagenUri?.toString()
                     )
-
                     viewModel.insertarTicket(nuevoTicket)
                     Toast.makeText(context, "Ticket guardado", Toast.LENGTH_SHORT).show()
-
                     onTicketGuardado()
                 } else {
-                    Toast.makeText(context, "Falta titulo o descripcion", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Revisa los campos marcados en rojo", Toast.LENGTH_SHORT).show()
                 }
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
         ) {
             Text("Guardar Ticket")
         }
 
         OutlinedButton(
             onClick = { onVolverAtras() },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Volver Atras")
         }
