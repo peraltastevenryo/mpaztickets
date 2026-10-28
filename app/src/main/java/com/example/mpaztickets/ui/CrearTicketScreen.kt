@@ -25,7 +25,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mpaztickets.data.Ticket
 import com.example.mpaztickets.data.listaCategorias
 import com.example.mpaztickets.data.listaPrioridades
-import com.example.mpaztickets.data.listaUbicaciones
 import com.example.mpaztickets.ui.componentes.CampoSelector
 import com.example.mpaztickets.ui.componentes.CampoTexto
 import com.example.mpaztickets.validacion.validarDescripcion
@@ -53,7 +52,7 @@ fun CrearTicketScreen(
     val errorTitulo = validarTitulo(titulo)
     val errorDescripcion = validarDescripcion(descripcion)
     val errorCategoria = validarSeleccion(categoria, "una categoria")
-    val errorUbicacion = validarSeleccion(ubicacion, "una ubicacion")
+    val errorUbicacion = validarTitulo(ubicacion)
 
     val formularioValido = errorTitulo == null &&
             errorDescripcion == null &&
@@ -123,10 +122,9 @@ fun CrearTicketScreen(
             mostrarError = intentoGuardar
         )
 
-        CampoSelector(
+        CampoTexto(
             valor = ubicacion,
-            opciones = listaUbicaciones,
-            onSeleccion = { ubicacion = it },
+            onValorChange = { ubicacion = it },
             etiqueta = "Ubicacion",
             error = errorUbicacion,
             mostrarError = intentoGuardar
@@ -187,7 +185,7 @@ fun CrearTicketScreen(
                         titulo = titulo.trim(),
                         descripcion = descripcion.trim(),
                         categoria = categoria,
-                        ubicacion = ubicacion,
+                        ubicacion = ubicacion.trim(),
                         prioridad = prioridad,
                         solicitante = nombreUsuario,
                         fotoProblema = imagenUri?.toString()
